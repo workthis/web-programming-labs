@@ -12,12 +12,25 @@ function App() {
   });
 
   const createMutation = useMutation({
-    mutationFn: (newTitle: string) => 
-      todosApi.create({ title: newTitle, completed: false }),
-    
+    mutationFn: (newTitle: string) => todosApi.create({ title: newTitle, completed: false }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['todos'] });
       setTitle('');
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, completed }: { id: number; completed: boolean }) =>
+      todosApi.update(id, { completed }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['todos'] });
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => todosApi.remove(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['todos'] });
     },
   });
 
@@ -34,27 +47,55 @@ function App() {
     <div style={{ padding: '20px', maxWidth: '600px', margin: '0 auto' }}>
       <h1>Мій список</h1>
 
-      {/* input */}
       <form onSubmit={handleAddTodo} style={{ marginBottom: '20px' }}>
         <input
           type="text"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           placeholder="Що зробити"
-          disabled={createMutation.isPending} // 5.3Блок
+          disabled={createMutation.isPending}
         />
-        <button 
-          type="submit" 
-          disabled={createMutation.isPending || !title.trim()}
-        >
-          {createMutation.isPending ? 'Додавання' : 'Додат'}
+        <button type="submit" disabled={createMutation.isPending || !title.trim()}>
+          Додати
         </button>
       </form>
 
       <ul style={{ listStyle: 'none', padding: 0 }}>
         {todos?.map((todo) => (
-          <li key={todo.id} style={{ textDecoration: todo.completed ? 'line-through' : 'none' }}>
-            {todo.title}
+          <li 
+            key={todo.id} 
+            style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '10px', 
+              marginBottom: '8px',
+              padding: '8px',
+              borderBottom: '1px solid #f0f0f0'
+            }}
+          >
+            {/* 6.1 */}
+            <input
+              type="checkbox"
+              checked={todo.completed}
+              onChange={() => updateMutation.mutate({ id: todo.id, completed: !todo.completed })}
+            />
+            
+            <span style={{ 
+              flexGrow: 1, 
+              textDecoration: todo.completed ? 'line-through' : 'none',
+              color: todo.completed ? '#888' : 'inherit'
+            }}>
+              {todo.title}
+            </span>
+
+            {/* 6.2 */}
+            <button 
+              onClick={() => deleteMutation.mutate(todo.id)}
+              style={{ color: 'red', cursor: 'pointer' }}
+              disabled={deleteMutation.isPending}
+            >
+              Видалити
+            </button>
           </li>
         ))}
       </ul>
