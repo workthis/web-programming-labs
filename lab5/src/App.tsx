@@ -1,56 +1,63 @@
-import { useQuery } from '@tanstack/react-query';
+import { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { todosApi } from './api/todos';
 
 function App() {
-  const { 
-    data: todos, 
-    isLoading, 
-    isError, 
-    error 
-  } = useQuery({
+  const [title, setTitle] = useState('');
+  const queryClient = useQueryClient();
+
+  const { data: todos, isLoading, isError } = useQuery({
     queryKey: ['todos'],
     queryFn: todosApi.getAll,
   });
 
-  if (isLoading) {
-    return (
-      <div style={{ padding: '20px', textAlign: 'center' }}>
-        <p>Завантаження завдань</p>
-      </div>
-    );
-  }
+  const createMutation = useMutation({
+    mutationFn: (newTitle: string) => 
+      todosApi.create({ title: newTitle, completed: false }),
+    
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['todos'] });
+      setTitle('');
+    },
+  });
 
-  if (isError) {
-    return (
-      <div style={{ padding: '20px', color: 'red' }}>
-        <p>Помилка: {error instanceof Error ? error.message : 'Невідома помилка'}</p>
-      </div>
-    );
-  }
+  const handleAddTodo = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!title.trim()) return;
+    createMutation.mutate(title);
+  };
+
+  if (isLoading) return <p>Завантаження.</p>;
+  if (isError) return <p>Помилка</p>;
 
   return (
     <div style={{ padding: '20px', maxWidth: '600px', margin: '0 auto' }}>
       <h1>Мій список</h1>
-      
-      {todos && todos.length > 0 ? (
-        <ul style={{ listStyle: 'none', padding: 0 }}>
-          {todos.map((todo) => (
-            <li 
-              key={todo.id} 
-              style={{
-                padding: '10px',
-                borderBottom: '1px solid #eee',
-                textDecoration: todo.completed ? 'line-through' : 'none',
-                color: todo.completed ? '#888' : 'inherit'
-              }}
-            >
-              {todo.title}
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p>Список пуст.</p>
-      )}
+
+      {/* input */}
+      <form onSubmit={handleAddTodo} style={{ marginBottom: '20px' }}>
+        <input
+          type="text"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder="Що зробити"
+          disabled={createMutation.isPending} // 5.3Блок
+        />
+        <button 
+          type="submit" 
+          disabled={createMutation.isPending || !title.trim()}
+        >
+          {createMutation.isPending ? 'Додавання' : 'Додат'}
+        </button>
+      </form>
+
+      <ul style={{ listStyle: 'none', padding: 0 }}>
+        {todos?.map((todo) => (
+          <li key={todo.id} style={{ textDecoration: todo.completed ? 'line-through' : 'none' }}>
+            {todo.title}
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
