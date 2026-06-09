@@ -1,0 +1,1 @@
+export const VARIANT: number = 13;

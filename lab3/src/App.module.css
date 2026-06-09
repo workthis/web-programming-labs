@@ -1,0 +1,72 @@
+.app {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: 'Inter', sans-serif;
+  color: #333;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 40px;
+  padding: 20px;
+  background: #fff;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.header h1 {
+  margin: 0 0 10px 0;
+  font-size: 2.5rem;
+  color: #1a1a1a;
+}
+
+.stats {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+  color: #666;
+}
+
+.divider { color: #ccc; }
+.todoCount { color: #007bff; font-weight: bold; }
+.progressCount { color: #ffc107; font-weight: bold; }
+.doneCount { color: #28a745; font-weight: bold; }
+
+.main {
+  display: grid;
+  grid-template-columns: 350px 1fr;
+  gap: 40px;
+  align-items: start;
+}
+
+.sectionTitle {
+  font-size: 1.2rem;
+  margin-bottom: 15px;
+  padding-left: 10px;
+}
+
+.filters {
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #f8f9fa;
+  padding: 15px;
+  border-radius: 8px;
+}
+
+.filters select {
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+}
+
+@media (max-width: 900px) {
+  .main {
+    grid-template-columns: 1fr;
+  }
+  .sidebar {
+    order: -1;
+  }
+}
