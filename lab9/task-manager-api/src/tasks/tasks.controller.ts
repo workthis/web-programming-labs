@@ -1,16 +1,8 @@
 import {
-  Controller,
-  Get,
-  Post,
-  Patch,
-  Delete,
-  Body,
-  Param,
-  Query,
-  HttpCode,
-  NotFoundException,
+  Controller, Get, Post, Patch, Delete,
+  Body, Param, Query, HttpCode, HttpStatus,
+  NotFoundException, ParseIntPipe,
 } from '@nestjs/common';
-import type { Task } from './entities/task.entity';
 import { TasksService } from './tasks.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
@@ -20,45 +12,34 @@ export class TasksController {
   constructor(private readonly tasksService: TasksService) {}
 
   @Get()
-  findAll(): Task[] {
+  findAll(@Query('status') status?: string) {
+    if (status) return this.tasksService.findByStatus(status);
     return this.tasksService.findAll();
   }
 
-  @Get('search')
-findByStatus(@Query('status') status: string) {
-  return this.tasksService.findByStatus(status);
-}
-
-  @Get('search')
-  findByStatus(@Query('status') status?: string): Task[] {
-    if (!status) return this.tasksService.findAll();
-    return this.tasksService.findByStatus(status);
-  }
-
   @Get(':id')
-  findOne(@Param('id') id: string): Task {
-    const task = this.tasksService.findOne(id);
-    if (!task) throw new NotFoundException(`Завдання #${id} не знайдено`);
+  async findOne(@Param('id', ParseIntPipe) id: number) {
+    const task = await this.tasksService.findOne(id);
+    if (!task) throw new NotFoundException(`Задача #${id} не знайдена`);
     return task;
   }
 
   @Post()
-  @HttpCode(201)
-  create(@Body() dto: CreateTaskDto): Task {
+  create(@Body() dto: CreateTaskDto) {
     return this.tasksService.create(dto);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() dto: UpdateTaskDto): Task {
-    const task = this.tasksService.update(id, dto);
-    if (!task) throw new NotFoundException(`Завдання #${id} не знайдено`);
+  async update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateTaskDto) {
+    const task = await this.tasksService.update(id, dto);
+    if (!task) throw new NotFoundException(`Задача #${id} не знайдена`);
     return task;
   }
 
   @Delete(':id')
-  @HttpCode(204)
-  remove(@Param('id') id: string): void {
-    const removed = this.tasksService.remove(id);
-    if (!removed) throw new NotFoundException(`Завдання #${id} не знайдено`);
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async remove(@Param('id', ParseIntPipe) id: number) {
+    const removed = await this.tasksService.remove(id);
+    if (!removed) throw new NotFoundException(`Задача #${id} не знайдена`);
   }
 }

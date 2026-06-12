@@ -6,6 +6,8 @@ import { UsersModule } from '../users/users.module';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { JwtStrategy } from './jwt.strategy';
+import type { StringValue } from 'ms';
+import { JwtModuleOptions } from '@nestjs/jwt';
 
 
 @Module({
@@ -16,9 +18,11 @@ import { JwtStrategy } from './jwt.strategy';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
-        secret: config.get<string>('JWT_SECRET'),
-        signOptions: { expiresIn: config.get<string>('JWT_EXPIRES_IN') },
-      }),
+  secret: config.get<string>('JWT_SECRET') as string,
+  signOptions: {
+    expiresIn: (config.get<string>('JWT_EXPIRES_IN') ?? '1h') as StringValue,
+  },
+}),
     }),
   ],
   providers: [AuthService, JwtStrategy],
