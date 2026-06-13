@@ -23,7 +23,7 @@ import { User } from './users/user.entity';
         password: config.get<string>('DB_PASSWORD'),
         database: config.get<string>('DB_NAME'),
         entities: [Task, Tag, User],
-        synchronize: false,
+        synchronize: true,
         migrations: [__dirname + '/migrations/*{.ts,.js}'],
       }),
     }),
